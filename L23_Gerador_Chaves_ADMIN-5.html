@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>L23 - Gerador de Chaves (ADMIN)</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: "Segoe UI", sans-serif; background:#0a0a2e; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.card { background:#0d1b6e; border:1px solid #1e40af; border-radius:16px; padding:30px; width:100%; max-width:420px; }
+h1 { color:#fff; font-size:18px; text-align:center; margin-bottom:4px; }
+.sub { color:#60a5fa; font-size:12px; text-align:center; margin-bottom:24px; }
+label { color:#a0b4ff; font-size:12px; font-weight:600; display:block; margin-bottom:5px; }
+input, select { width:100%; padding:12px; border:1px solid #2a4adf; border-radius:8px; background:rgba(255,255,255,0.07); color:#fff; font-size:14px; outline:none; margin-bottom:14px; font-family:monospace; }
+.btn { width:100%; padding:14px; background:linear-gradient(135deg,#1e40af,#3b82f6); color:white; border:none; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; }
+.resultado { margin-top:20px; background:rgba(0,0,0,0.3); border:1px solid #22c55e; border-radius:10px; padding:16px; display:none; }
+.chave-display { color:#4ade80; font-size:18px; font-weight:700; font-family:monospace; letter-spacing:2px; text-align:center; margin-bottom:10px; word-break:break-all; }
+.info-lic { color:#a0b4ff; font-size:12px; margin-bottom:10px; text-align:center; }
+.btn-copiar { width:100%; padding:10px; background:linear-gradient(135deg,#15803d,#22c55e); color:white; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; }
+.aviso { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px; margin-top:16px; color:#fca5a5; font-size:11px; text-align:center; }
+optgroup { color:#60a5fa; font-style:normal; font-weight:700; }
+option { color:#fff; background:#0d1b6e; }
+</style></head>
+<body>
+<div class="card">
+  <h1>&#128273; L23 - Gerador de Chaves</h1>
+  <p class="sub">Painel Administrativo &#8212; Uso Exclusivo</p>
+  <label>CODIGO DO DISPOSITIVO</label>
+  <input type="text" id="deviceId" placeholder="Ex: A3F7-9K2M" style="text-transform:uppercase">
+  <label>NOME DO USUARIO</label>
+  <input type="text" id="nomeUser" placeholder="Ex: Joao Silva">
+  <label>PRAZO DE ACESSO</label>
+  <select id="dias">
+    <optgroup label="Testes">
+      <option value="0.04">1 hora</option>
+      <option value="0.25">6 horas</option>
+      <option value="0.5">12 horas</option>
+    </optgroup>
+    <optgroup label="Curto prazo">
+      <option value="1">1 dia</option>
+      <option value="3">3 dias</option>
+      <option value="7">7 dias</option>
+      <option value="15">15 dias</option>
+    </optgroup>
+    <optgroup label="Padrao">
+      <option value="30" selected>30 dias</option>
+      <option value="60">60 dias</option>
+      <option value="90">90 dias</option>
+      <option value="180">180 dias</option>
+      <option value="365">365 dias</option>
+    </optgroup>
+    <optgroup label="Especial">
+      <option value="999">Indeterminado</option>
+    </optgroup>
+  </select>
+  <button class="btn" onclick="gerarChave()">GERAR CHAVE</button>
+  <div class="resultado" id="resultado">
+    <div class="chave-display" id="chaveGerada"></div>
+    <div class="info-lic" id="infoLic"></div>
+    <button class="btn-copiar" onclick="copiarChave()">&#128203; Copiar Chave</button>
+  </div>
+  <div class="aviso">&#9888; Uso exclusivo do administrador. Nao compartilhe esta pagina.</div>
+</div>
+<script>
+var SECRET = "L23chevetteamarelo2024";
+
+function sha256(str) {
+    function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+    var mathPow=Math.pow,maxWord=mathPow(2,32),i,j,result="";
+    var words=[],asciiBitLength=str.length*8;
+    var hash=sha256.h=sha256.h||[]; var k=sha256.k=sha256.k||[]; var primeCounter=k.length; var isComposite={};
+    for(var candidate=2;primeCounter<64;candidate++){if(!isComposite[candidate]){for(i=0;i<313;i+=candidate)isComposite[i]=candidate;hash[primeCounter]=(mathPow(candidate,.5)*maxWord)|0;k[primeCounter++]=(mathPow(candidate,1/3)*maxWord)|0;}}
+    str+="\x80"; while(str.length%64-56)str+="\x00";
+    for(i=0;i<str.length;i++){j=str.charCodeAt(i);if(j>>8)return"";words[i>>2]|=j<<((3-i)%4)*8;}
+    words[words.length]=((asciiBitLength/maxWord)|0);words[words.length]=(asciiBitLength|0);
+    for(j=0;j<words.length;){var w=words.slice(j,j+=16),oldHash=hash.slice(0);hash=sha256.h.slice(0);for(i=0;i<64;i++){var i2=i+j-16,w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];var temp1=hash[7]+(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))+((e&hash[5])^(~e&hash[6]))+k[i]+(w[i]=(i<16)?w[i]:(w[i-16]+(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))+w[i-7]+(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0);var temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));hash=[(temp1+temp2)|0].concat(hash);hash[4]=(hash[4]+temp1)|0;hash.length=8;}hash=hash.map(function(v,i){return(v+oldHash[i])|0;});}
+    for(i=0;i<8;i++){for(j=3;j+1;j--){var b=(hash[i]>>(j*8))&255;result+=((b<16)?0:"")+b.toString(16);}}
+    return result.toUpperCase();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+
+function gerarChave() {
+    var deviceId = document.getElementById("deviceId").value.trim().toUpperCase();
+    var nome = document.getElementById("nomeUser").value.trim();
+    var diasFloat = parseFloat(document.getElementById("dias").value);
+    if (!deviceId || !nome) { alert("Preencha o codigo do dispositivo e o nome!"); return; }
+
+    var diasParaHash, diasParaHex, descricaoValidade, dataExpiry;
+
+    if (diasFloat < 1) {
+        var horas = Math.round(diasFloat * 24);
+        diasParaHash = horas;
+        diasParaHex = "H" + ("0"+horas.toString(16)).slice(-2).toUpperCase();
+        descricaoValidade = horas + " hora" + (horas>1?"s":"");
+        dataExpiry = new Date(Date.now() + horas*60*60*1000).toLocaleString("pt-BR");
+    } else if (diasFloat === 999) {
+        diasParaHash = 999;
+        diasParaHex = "3E7";
+        descricaoValidade = "Indeterminado";
+        dataExpiry = "sem expiracao";
+    } else {
+        var dias = Math.round(diasFloat);
+        diasParaHash = dias;
+        diasParaHex = dias > 255 ? dias.toString(16).toUpperCase() : ("0"+dias.toString(16)).slice(-2).toUpperCase();
+        descricaoValidade = dias + " dia" + (dias>1?"s":"");
+        dataExpiry = new Date(Date.now() + dias*24*60*60*1000).toLocaleDateString("pt-BR");
+    }
+
+    var nomeClean = nome.toUpperCase().replace(/\s/g,"").substring(0,8);
+    var raw = deviceId + "|" + diasParaHash + "|" + SECRET;
+    var h = sha256(raw);
+    var chave = h.substring(0,4)+"-"+h.substring(4,8)+"-"+h.substring(8,12)+"-"+h.substring(12,16);
+    var extra = diasParaHex + nomeClean.substring(0,2);
+    var extraHash = sha256(extra+SECRET).substring(0,4);
+    var chaveCompleta = chave + "-" + extra + extraHash;
+
+    document.getElementById("chaveGerada").textContent = chaveCompleta;
+    document.getElementById("infoLic").textContent = "Licenciado para: "+nome+" | "+descricaoValidade+(dataExpiry !== "sem expiracao" ? " (ate "+dataExpiry+")" : "");
+    document.getElementById("resultado").style.display = "block";
+}
+
+function copiarChave() {
+    var chave = document.getElementById("chaveGerada").textContent;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(chave).then(function(){ alert("Chave copiada!"); });
+    } else {
+        var tmp = document.createElement("input");
+        tmp.value = chave; document.body.appendChild(tmp);
+        tmp.select(); document.execCommand("copy");
+        document.body.removeChild(tmp); alert("Chave copiada!");
+    }
+}
+</script>
+</body></html>
